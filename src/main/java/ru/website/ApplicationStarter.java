@@ -1,2 +1,12 @@
-package PACKAGE_NAME;public class ApplicationStarter {
+package ru.website;
+
+import javafx.application.Application;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ApplicationStarter {
+    public static void main(String[] args) {
+        SpringApplication.run(ApplicationStarter.class);
+    }
 }
