@@ -37,3 +37,5 @@
                   
 Сортировки :    "/stud/sortbs"
                 "/sub/sortbs"
+                
+БД - mysql
