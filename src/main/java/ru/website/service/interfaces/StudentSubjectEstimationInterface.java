@@ -6,6 +6,7 @@ import ru.website.model.Students;
 import ru.website.model.Subject;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StudentSubjectEstimationInterface {
 
@@ -30,4 +31,8 @@ public interface StudentSubjectEstimationInterface {
 
     List<Students> sortedStudentsBySurnameUp();
     List<Subject> sortedSubjectByNameUp();
+
+    Optional<Students> findByIdStudent(Long id);
+
+    Object report();
 }

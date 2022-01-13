@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.website.dto.Report;
 import ru.website.dto.StudentSubjectEstimationDto;
 import ru.website.model.Estimation;
 import ru.website.model.Students;
@@ -13,13 +14,9 @@ import ru.website.repository.StudentRepository;
 import ru.website.repository.SubjectRepository;
 import ru.website.service.interfaces.StudentSubjectEstimationInterface;
 
-import javax.swing.text.html.Option;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEstimationInterface {
@@ -44,6 +41,9 @@ public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEsti
 
     @Override
     public Students addStudent(Students students) {
+        //добавить уникальные значения имен
+
+
         return studentRepository.save(students);
     }
 
@@ -59,6 +59,7 @@ public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEsti
 
     @Override
     public Object converterDtoToEntity(StudentSubjectEstimationDto studentSubjectEstimationDto) {
+
             List<Students> listStudents = studentRepository.findAll();
             Optional<Students> studentsOptional =
                     listStudents.stream()
@@ -68,10 +69,10 @@ public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEsti
                             .findFirst();
 
         Students st = studentsOptional.get();
-        Subject subject = new Subject();
 
 
-        try{
+
+            Subject subject = new Subject();
             List<Subject> subjectsList = subjectRepository.findAll();
             Optional<Subject> subjectOptional =
                     subjectsList.stream()
@@ -79,40 +80,44 @@ public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEsti
                                     .equals(studentSubjectEstimationDto.getSubjectName()))
                             .findFirst();
 
-            subject.setNameSubject(subjectOptional.get().getNameSubject());
-        }catch (Exception e) {
-            String str = new ResponseEntity<>(HttpStatus.NOT_FOUND).toString();
-            return str;
-        }
+             subject.setNameSubject(subjectOptional.get().getNameSubject());
 
 
-        Estimation estimation = new Estimation();
+            Estimation estimation = new Estimation();
 
-        try{
-            List<Estimation> estimationList = estimationRepository.findAll();
-            Optional<Estimation> estimationOptional =
-                    estimationList.stream()
-                            .filter(elem -> elem.getEstimation()
-                                    .equals(studentSubjectEstimationDto.getEstimation()))
-                            .findFirst();
+            try{
+                List<Estimation> estimationList = estimationRepository.findAll();
+                Optional<Estimation> estimationOptional =
+                        estimationList.stream()
+                                .filter(elem -> elem.getEstimation()
+                                        .equals(studentSubjectEstimationDto.getEstimation()))
+                                .findFirst();
 
-            estimation.setEstimation(estimationOptional.get().getEstimation());
+                estimation.setEstimation(estimationOptional.get().getEstimation());
+                estimationRepository.save(estimation);
+            }catch (Exception e) {
+                String str = new ResponseEntity<>(HttpStatus.NOT_FOUND).toString();
+                return str;
+            }
+
+
             estimationRepository.save(estimation);
-        }catch (Exception e) {
-            String str = new ResponseEntity<>(HttpStatus.NOT_FOUND).toString();
-            return str;
-        }
+
+            subject.addEstimation(estimation);
+            subjectRepository.save(subject);
+
+            st.addSubject(subject);
+            studentRepository.save(st);
 
 
-        estimationRepository.save(estimation);
-
-        subject.addEstimation(estimation);
-        subjectRepository.save(subject);
-
-        st.addSubject(subject);
-        studentRepository.save(st);
+       // Subject subject = new Subject();
         return st;
     }
+
+
+
+
+
 
     public List<Students> aLs(Students students){
         List<Students> a = new ArrayList<>();
@@ -220,4 +225,107 @@ public class StudentSubjectEstimationInterfaceImpl implements StudentSubjectEsti
                         .collect(Collectors.toList());
         return sortedSubjects;
     }
+
+    @Override
+    public Object report() {
+
+
+        List<Report> reportList = new ArrayList<>();
+
+        List<Students> studentsList =
+                findAllStudents();
+
+        for (Students stud: studentsList) {
+            Report report = new Report();
+            report.setStudentSurname(stud.getSurname());
+
+            Map<String, Double> map = new HashMap<>();
+            Stream<Subject> subjectList = stud.getSubjectList().stream();
+            Set<Subject> subjectSet = subjectList.collect(Collectors.toSet());
+
+            for (Subject subFromSet: subjectSet) {
+                int i = 0;
+                String nameSubjectFromSet = subFromSet.getNameSubject();
+
+               int estimationList =  stud.getSubjectList().stream()
+                                .filter(e->e.getNameSubject().equals(nameSubjectFromSet))
+                                        .map(q->q.getEstimationList()
+                                                .stream()
+                                                .map(Estimation::getEstimation)
+                                                .mapToInt(Integer::intValue).sum()).mapToInt(r->r).sum();
+
+
+                List<Object> size =  stud.getSubjectList().stream()
+                        .filter(e->e.getNameSubject().equals(nameSubjectFromSet))
+                        .map(q->q.getEstimationList()
+                                .stream()
+                                .map(Estimation::getEstimation)
+                                .mapToInt(Integer::intValue).sum()).collect(Collectors.toList());
+
+                int sizeFinal = size.size();
+                double result = estimationList/sizeFinal;
+
+
+                map.put(nameSubjectFromSet, result);
+                report.setAverageMark(map);
+            }
+
+            reportList.add(report);
+        }
+
+
+        return reportList;
+    }
+
+
+
+
+    @Override
+    public Optional<Students> findByIdStudent(Long id) {
+        return studentRepository.findById(id);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*for (int i = 0; i < students.size(); i++) {
+            Students stud = students.get(i);
+            report.setStudentSurname(stud.getSurname());
+
+            q.put(i,stud.getSubjectList().stream().toString());
+
+
+
+
+
+               *//* Integer sumNum = subj.getEstimationList()
+                        .stream()
+                        .map(Estimation::getEstimation)
+                        .mapToInt(g ->g )
+                        .sum();//получил сумму оценок одного предмета*//*
+
+ *//*String str = subj.getNameSubject();
+
+
+
+                Map<Integer,String> q = new HashMap<>();
+                q.put(sumNum,str);
+                report.setAverageMark(q);
+                reportsList.add(report);*//*
+            }*/

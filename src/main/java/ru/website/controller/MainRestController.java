@@ -11,6 +11,7 @@ import ru.website.service.StudentSubjectEstimationInterfaceImpl;
 
 import javax.persistence.GeneratedValue;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -111,11 +112,17 @@ public class MainRestController {
         return studentSubjectEstimationInterfaceImpd.sortedSubjectByNameUp();
     }
 
-    
+    ////////////////////формирование отчета////////////////////
 
+    @GetMapping("/rep")
+    public Object testMeth(){
+        return studentSubjectEstimationInterfaceImpd.report();
+    }
 
-
-
-
+    //////////////////найти студента по айди///////////////////
+    @GetMapping("stud/find/{id}")
+    public Optional<Students> findStudentById(@PathVariable("id") Long id){
+       return studentSubjectEstimationInterfaceImpd.findByIdStudent(id);
+    }
 
 }
