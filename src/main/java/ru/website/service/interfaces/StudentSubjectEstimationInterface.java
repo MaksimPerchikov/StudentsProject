@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface StudentSubjectEstimationInterface {
 
 
-    Students addStudent(Students students);
+    Object addStudent(Students students);
     Subject addSubject(Subject subject);
     Estimation addEstimation(Estimation estimation);
 
@@ -31,8 +31,10 @@ public interface StudentSubjectEstimationInterface {
 
     List<Students> sortedStudentsBySurnameUp();
     List<Subject> sortedSubjectByNameUp();
+    List<Subject> sortedSubjectByNameByParamName(String name);
 
     Optional<Students> findByIdStudent(Long id);
 
     Object report();
+
 }
